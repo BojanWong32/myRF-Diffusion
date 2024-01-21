@@ -1,6 +1,6 @@
 ## 学习文档
 
-本文是对https://github.com/mobicom24/RF-Diffusion和http://tns.thss.tsinghua.edu.cn/widar3.0/的学习文档，个人使用
+本文是对https://github.com/mobicom24/RF-Diffusion 和 http://tns.thss.tsinghua.edu.cn/widar3.0/ 的学习文档，个人使用
 
 #### 1月19日，整理一下之前的学习成果
 
