@@ -12,11 +12,11 @@
 
 使用代码提供的模型和测试数据，得到平均SSIM：
 
-<img src="C:\Users\wangbo\AppData\Roaming\Typora\typora-user-images\image-20240120124512276.png" style="zoom:33%;" />
+<img src="image/image-20240120124512276.png" style="zoom:33%;" />
 
 原数据与生成数据的多普勒偏移对比：
 
-<img src="C:\Users\wangbo\AppData\Roaming\Typora\typora-user-images\image-20240120124633326.png" style="zoom:50%;" />
+<img src="image/image-20240120124633326.png" style="zoom:50%;" />
 
 ##### 2.准备数据，训练模型
 
@@ -56,7 +56,7 @@ end
 
 对于该神经网络，需要再次将数据格式转为20\*20\*t的BVP形式，即：
 
-<img src="D:\googleDownload\bvp_domain1.gif" style="zoom: 50%;" />
+<img src="image/bvp_domain1.gif" style="zoom: 50%;" />
 
 学习从CSI到BVP的生成代码
 
