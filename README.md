@@ -176,4 +176,20 @@ seg_number = floor(size(doppler_spectrum, 3)/seg_length);
 #### 1月22日
 ##### 1.遇到报错RuntimeError: stack expects a non-empty TensorList
 更改Dataloader的drop_last和num_workers，均无效，尝试几次发现每次卡在同样的一条数据，查看该文件，发现文件大小明显不对，其他文件都在2000kb左右，而该文件只有200kb，查看矩阵发现该矩阵只有219*90，小于我们的最低标准512，再查看其他相同条件矩阵，应该是采集数据时发生错误，将该组数据删除。
-##### 
+##### 2.转化BVP数据
+将749条512*90的真实数据和749条512*90的合成数据
+```
+function [cfr_array, timestamp] = csi_get_all(filename)
+
+
+csi_trace = 512;
+timestamp = zeros(length(csi_trace), 1);
+% cfr_array = zeros(length(csi_trace), 90);
+
+data = load(filename);
+pred = data.pred;
+
+pred = double(pred);
+
+cfr_array = reshape(pred, [512, 90]);
+```
