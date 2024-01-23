@@ -223,3 +223,6 @@ cfr_array = reshape(pred, [512, 90]);
 <img src="image/8df93d48701269deea239633aa9e734.png" style="zoom:50%;" />
 
 
+##### 1.先排除一下，是不是BVP生成代码的问题
+先用t*90的CSI跑一遍该代码
+
