@@ -211,6 +211,6 @@ cfr_array = reshape(pred, [512, 90]);
 
 这张图是两张相同标签的六个天线的多普勒频移图，左合成，右真实
 
-<img src="image/dfs_compare.png" style="zoom:50%;" />
+<img src="image/8df93d48701269deea239633aa9e734.png" style="zoom:50%;" />
 
 
