@@ -223,7 +223,7 @@ cfr_array = reshape(pred, [512, 90]);
 <img src="image/8df93d48701269deea239633aa9e734.png" style="zoom:50%;" />
 
 
-##### 1.先排除一下，是不是BVP生成代码的问题
+##### 1.是不是BVP生成代码的问题
 先用t*90的CSI跑一遍该代码
 
 生成的BVP与标准BVP比较，矩阵大小相同说明是同样生成的，但内容完全不同
@@ -231,5 +231,7 @@ cfr_array = reshape(pred, [512, 90]);
 <img src="image/696b810981c072d41e7f720ca0df73e.png" style="zoom:50%;" />
 
 
+改用dat文件从头生成BVP，也不相同，难道是我之前改什么地方，改错参数了吗。
 
+重新解压生成代码，还是照旧，先不管。
 
