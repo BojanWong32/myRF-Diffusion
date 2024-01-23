@@ -210,6 +210,7 @@ cfr_array = reshape(pred, [512, 90]);
 我觉得数据量还是太少的缘故导致模型的准确度本就很低，进一步合成更多数据。
 
 这张图是两张相同标签的六个天线的多普勒频移图，左合成，右真实
+
 <img src="image/dfs_compare.png" style="zoom:50%;" />
 
 
