@@ -9,14 +9,16 @@ from keras.layers import Input, GRU, Dense, Flatten, Dropout, Conv2D, Conv3D, Ma
 from keras.models import Model, load_model
 import keras.backend as K
 from sklearn.metrics import confusion_matrix
-from keras.backend.tensorflow_backend import set_session
+# from keras.backend.tensorflow_backend import set_session
 from sklearn.model_selection import train_test_split
 
+# 0.4933 0.5066 0.52 0.4933 0.5466
 
 # Parameters
 use_existing_model = False
 fraction_for_test = 0.1
-data_dir = 'Data/'
+data_dir = 'D:/googleDownload/BVPExtractionCode/Widar3.0Release-Matlab/BVP_old'
+
 ALL_MOTION = [1,2,3,4,5,6]
 N_MOTION = len(ALL_MOTION)
 T_MAX = 0
@@ -105,7 +107,7 @@ def load_data(path_to_data, motion_sel):
 
     # data(ndarray): [N,T_MAX,20,20,1], label(ndarray): [N,N_MOTION]
     return data, label
-    
+
 def assemble_model(input_shape, n_class):
     model_input = Input(shape=input_shape, dtype='float32', name='name_model_input')    # (@,T_MAX,20,20,1)
 
@@ -123,7 +125,7 @@ def assemble_model(input_shape, n_class):
 
     # Model compiling
     model = Model(inputs=model_input, outputs=model_output)
-    model.compile(optimizer=keras.optimizers.RMSprop(lr=f_learning_rate),
+    model.compile(optimizer=keras.optimizers.RMSprop(learning_rate=f_learning_rate),
                     loss='categorical_crossentropy',
                     metrics=['accuracy']
                 )
@@ -136,10 +138,10 @@ if len(sys.argv) < 2:
     exit(0)
 if (sys.argv[1] == '1' or sys.argv[1] == '0'):
     os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    set_session(tf.Session(config=config))
-    tf.set_random_seed(1)
+    # config = tf.ConfigProto()
+    # config.gpu_options.allow_growth = True
+    # set_session(tf.Session(config=config))
+    # tf.set_random_seed(1)
 else:
     print('Wrong GPU number, 0 or 1 supported!')
     exit(0)

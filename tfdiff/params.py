@@ -23,9 +23,9 @@ params_wifi = AttrDict(
     task_id=0,
     log_dir='./log/wifi',
     model_dir='./model/wifi/b32-256-100s',
-    data_dir=['./dataset/wifi/raw'],
+    data_dir=['dataset/wifi/raw'],
     out_dir='./dataset/wifi/output',
-    cond_dir=['./dataset/wifi/cond'],
+    cond_dir=['dataset/wifi/raw'],
     # Training params
     max_iter=None, # Unlimited number of iterations.
     batch_size=8,  # old 32

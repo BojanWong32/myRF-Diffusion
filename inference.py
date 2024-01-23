@@ -82,13 +82,14 @@ def cal_SNR_MIMO(predict, truth):
     return 10 * np.log10(ratio)
 
 
-def save(out_dir, data, cond, batch, index=0):
+def save(out_dir, data, cond, batch, index=0,file_name = 'xxx'):
     os.makedirs(out_dir, exist_ok=True)
-    file_name = os.path.join(out_dir, 'batch-' + str(batch) + '-' + str(index) + '.mat')
+    file_name = os.path.join(out_dir, file_name)
     mat_data = {
         'pred': data.numpy(),
         'cond': cond.numpy()
     }
+    # print(file_name)
     scio.savemat(file_name, mat_data)
 
 
@@ -96,6 +97,7 @@ def main(args):
     params = all_params[args.task_id]  # tfdiff/params
     model_dir = args.model_dir or params.model_dir
     out_dir = args.out_dir or params.out_dir
+    old_dir = './dataset/wifi/old'
     if args.cond_dir is not None:
         params.cond_dir = args.cond_dir
     device = torch.device(
@@ -153,37 +155,49 @@ def main(args):
                     print(cur_ssim)
                     # Save the SSIM.
                     ssim_list.append(cur_ssim.item())
-                    save(out_dir, p_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b)
+
+                    x = torch.squeeze(cond, dim = 0)
+                    x = torch.squeeze(x, dim=0)
+                    x, _ = torch.max(x, dim=1)
+                    x = x.tolist()
+                    x = np.int_(x)
+                    # print(x)
+
+                    file_name = os.path.join(
+                                             'user' + str(x[5]) + '-' + str(x[1]) + '-' + str(x[2]) + '-' + str(
+                                                 x[3]) + '-' + str((cur_batch % 30) // 6 + 1) + '-r' + str(x[4]) + '.mat')
+                    save(out_dir, p_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b,file_name)
+                    save(old_dir, d_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b, file_name)
 
                     # 打印csi对比图
-                    p_matrix = p_sample.squeeze().cpu().numpy()
-                    p1_matrix = np.abs(p_matrix)
-                    plt.plot(p1_matrix[:,1], label='pred_matrix')
-
-                    d_matrix = d_sample.squeeze().cpu().numpy()
-                    d1_matrix = np.abs(d_matrix)
-                    plt.plot(d1_matrix[:,1], label='data_matrix')
-
-                    plt.title('CSI Waveforms')
-                    plt.xlabel('Time')
-                    plt.ylabel('Amplitude')
-                    plt.legend()
-                    plt.show()
+                    # p_matrix = p_sample.squeeze().cpu().numpy()
+                    # p1_matrix = np.abs(p_matrix)
+                    # plt.plot(p1_matrix[:,1], label='pred_matrix')
+                    #
+                    # d_matrix = d_sample.squeeze().cpu().numpy()
+                    # d1_matrix = np.abs(d_matrix)
+                    # plt.plot(d1_matrix[:,1], label='data_matrix')
+                    #
+                    # plt.title('CSI Waveforms')
+                    # plt.xlabel('Time')
+                    # plt.ylabel('Amplitude')
+                    # plt.legend()
+                    # plt.show()
 
                     # 打印dfs对比图
-                    plt.subplot(2, 1, 1)
-                    plt.specgram(p_matrix[:,1], cmap='jet')
-                    plt.title('Doppler Shift - Antenna {}'.format(1))
-                    plt.xlabel('Time')
-                    plt.ylabel('Frequency')
-                    plt.colorbar(label='Amplitude')
-                    plt.subplot(2, 1, 2)
-                    plt.specgram(d_matrix[:,1], cmap='jet')
-                    plt.title('Doppler Shift - Antenna {}'.format(1))
-                    plt.xlabel('Time')
-                    plt.ylabel('Frequency')
-                    plt.colorbar(label='Amplitude')
-                    plt.show()
+                    # plt.subplot(2, 1, 1)
+                    # plt.specgram(p_matrix[:,1], cmap='jet')
+                    # plt.title('Doppler Shift - Antenna {}'.format(1))
+                    # plt.xlabel('Time')
+                    # plt.ylabel('Frequency')
+                    # plt.colorbar(label='Amplitude')
+                    # plt.subplot(2, 1, 2)
+                    # plt.specgram(d_matrix[:,1], cmap='jet')
+                    # plt.title('Doppler Shift - Antenna {}'.format(1))
+                    # plt.xlabel('Time')
+                    # plt.ylabel('Frequency')
+                    # plt.colorbar(label='Amplitude')
+                    # plt.show()
 
                 cur_batch += 1
             if args.task_id in [2, 3]:

@@ -7,7 +7,7 @@ cond_folder = 'dataset/wifi/cond'
 
 files = os.listdir(raw_folder)
 
-random_files = random.sample(files, 50)
+random_files = random.sample(files, 1500)
 
 os.makedirs(cond_folder, exist_ok=True)
 

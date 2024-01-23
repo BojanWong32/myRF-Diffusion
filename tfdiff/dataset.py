@@ -237,6 +237,7 @@ def from_path_inference(params):
         dataset,
         batch_size=params.inference_batch_size,
         collate_fn=Collator(params).collate,
-        shuffle=True,
-        num_workers=os.cpu_count()
+        shuffle=False, #True
+        num_workers=0,  #os.cpu_count()
+        drop_last = True
     )
