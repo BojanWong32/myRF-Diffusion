@@ -226,3 +226,10 @@ cfr_array = reshape(pred, [512, 90]);
 ##### 1.先排除一下，是不是BVP生成代码的问题
 先用t*90的CSI跑一遍该代码
 
+生成的BVP与标准BVP比较，矩阵大小相同说明是同样生成的，但内容完全不同
+
+<img src="image/696b810981c072d41e7f720ca0df73e.png" style="zoom:50%;" />
+
+
+
+
