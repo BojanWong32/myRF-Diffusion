@@ -208,3 +208,5 @@ cfr_array = reshape(pred, [512, 90]);
 <img src="image/image.png" style="zoom:50%;" />
 
 我觉得数据量还是太少的缘故导致模型的准确度本就很低，进一步合成更多数据。
+
+<img src="image/old_BVP.fig" style="zoom:50%;" />
