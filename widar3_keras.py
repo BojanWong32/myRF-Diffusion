@@ -12,13 +12,23 @@ from sklearn.metrics import confusion_matrix
 # from keras.backend.tensorflow_backend import set_session
 from sklearn.model_selection import train_test_split
 
-# 0.4933 0.5066 0.52 0.4933 0.5466
+# 0.4933 0.5066 0.52 0.4933 0.5466           0.51196
+# 0.4555 0.3444 0.3666 0.3666 0.4            0.38662
+# 0.2762 0.4 0.2952 0.4 0.4                  0.35428
+# 0.325 0.3333 0.4416 0.3166 0.375           0.35824
+# 0.3037 0.2740 0.2740 0.2962 0.2888         0.28734
+# 0.28 0.34 0.1933 0.2933 0.3266             0.28664
+
+
+#
+
 
 # Parameters
+index = 0
 use_existing_model = False
 fraction_for_test = 0.1
-data_dir = 'D:/googleDownload/BVPExtractionCode/Widar3.0Release-Matlab/BVP_old'
-
+data_dir = 'D:/googleDownload/BVPExtractionCode/Widar3.0Release-Matlab/BVP_old3'
+new_data_dir = 'D:/googleDownload/BVPExtractionCode/Widar3.0Release-Matlab/BVP_new'
 ALL_MOTION = [1,2,3,4,5,6]
 N_MOTION = len(ALL_MOTION)
 T_MAX = 0
@@ -55,12 +65,13 @@ def onehot_encoding(label, num_class):
     _label = np.eye(num_class)[label-1]     # from label to onehot
     return _label
 
-def load_data(path_to_data, motion_sel):
+def load_data(path_to_data, motion_sel, mark):
     global T_MAX
     data = []
     label = []
     for data_root, data_dirs, data_files in os.walk(path_to_data):
         for data_file_name in data_files:
+
 
             file_path = os.path.join(data_root,data_file_name)
             try:
@@ -72,6 +83,8 @@ def load_data(path_to_data, motion_sel):
 
                 # Select Motion
                 if (label_1 not in motion_sel):
+                    continue
+                if repetition > index and mark == 1:
                     continue
 
                 # Select Location
@@ -107,6 +120,7 @@ def load_data(path_to_data, motion_sel):
 
     # data(ndarray): [N,T_MAX,20,20,1], label(ndarray): [N,N_MOTION]
     return data, label
+
 
 def assemble_model(input_shape, n_class):
     model_input = Input(shape=input_shape, dtype='float32', name='name_model_input')    # (@,T_MAX,20,20,1)
@@ -147,7 +161,12 @@ else:
     exit(0)
 
 # Load data
-data, label = load_data(data_dir, ALL_MOTION)
+data, label = load_data(data_dir, ALL_MOTION, 0)
+# data2, label2 = load_data(new_data_dir, ALL_MOTION, 1)
+#
+# data = np.concatenate((data, data2), axis=0)
+# label = np.concatenate((label, label2), axis = 0)
+
 print('\nLoaded dataset of ' + str(label.shape[0]) + ' samples, each sized ' + str(data[0,:,:].shape) + '\n')
 
 # Split train and test

@@ -97,7 +97,7 @@ def main(args):
     params = all_params[args.task_id]  # tfdiff/params
     model_dir = args.model_dir or params.model_dir
     out_dir = args.out_dir or params.out_dir
-    old_dir = './dataset/wifi/old'
+    old_dir = './dataset/wifi/old2'
     if args.cond_dir is not None:
         params.cond_dir = args.cond_dir
     device = torch.device(
@@ -133,6 +133,7 @@ def main(args):
                 device) if isinstance(x, torch.Tensor) else x)
             data = features['data']
             cond = features['cond']
+            length = features['length']
             # print(data.shape)
             if args.task_id in [0, 1]:
                 # pred = diffusion.sampling(model, cond, device)
@@ -165,7 +166,7 @@ def main(args):
 
                     file_name = os.path.join(
                                              'user' + str(x[5]) + '-' + str(x[1]) + '-' + str(x[2]) + '-' + str(
-                                                 x[3]) + '-' + str((cur_batch % 30) // 6 + 1) + '-r' + str(x[4]) + '.mat')
+                                                 x[3]) + '-' + str((cur_batch % 120) // 6 + 1) + '-r' + str(x[4]) + '.mat')
                     save(out_dir, p_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b,file_name)
                     save(old_dir, d_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b, file_name)
 
