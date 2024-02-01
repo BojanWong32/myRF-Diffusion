@@ -244,3 +244,33 @@ cfr_array = reshape(pred, [512, 90]);
 #### 1月31日，更新
 
 使用时间长度为t的真实CSI矩阵训练无线感知系统，最终准确度有90%，算是达到了标准，看来矩阵长度确实也应该算是重要特征之一。
+
+#### 2月1日
+
+```
+def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
+    os.makedirs(out_dir, exist_ok=True)
+    file_name = os.path.join(out_dir, file_name)
+    time = times[batch]
+    # print(time)
+    # print(data.shape)
+
+    data = torch.view_as_real(data).permute(0, 2, 3, 1)
+    # print(data.shape)
+    data = F.interpolate(data, (2, time), mode='nearest-exact')
+
+    # print(data.shape)
+    data = data.permute(0, 3, 1, 2)
+    data = data.contiguous()
+    # print(data.shape)
+    data = torch.view_as_complex(data)
+    # print(data.shape)
+
+    mat_data = {
+        'pred': data.numpy(),
+        'cond': cond.numpy()
+    }
+    # print(file_name)
+    scio.savemat(file_name, mat_data)
+```
+修改save函数，使其根据原CSI矩阵时间长度，将合成数据变成相应大小。
