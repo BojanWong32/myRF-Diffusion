@@ -274,3 +274,8 @@ def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
     scio.savemat(file_name, mat_data)
 ```
 修改save函数，使其根据原CSI矩阵时间长度，将合成数据变成相应大小。
+
+#### 2月3日
+
+<img src="image/image.png" style="zoom:50%;" />
+又复现失败了，感觉是这个Widar3数据集的无线感知神经网络太复杂，换一个简单的再试试
