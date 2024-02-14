@@ -279,3 +279,7 @@ def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
 
 <img src="image/image.png" style="zoom:50%;" />
 又复现失败了，感觉是这个Widar3数据集的无线感知神经网络太复杂，换一个简单的再试试
+
+#### 2月14日
+
+学习https://github.com/xyanchen/WiFi-CSI-Sensing-Benchmark
