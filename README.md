@@ -205,7 +205,7 @@ cfr_array = reshape(pred, [512, 90]);
 #### 1月23日
 复现结果不理想，随着合成数据的增加，准确度反而下降
 
-<img src="image/image.png" style="zoom:50%;" />
+<img src="image/image_old.png" style="zoom:50%;" />
 
 可能失败原因：
 
