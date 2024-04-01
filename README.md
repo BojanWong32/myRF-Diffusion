@@ -283,3 +283,7 @@ def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
 #### 2月14日
 
 学习https://github.com/xyanchen/WiFi-CSI-Sensing-Benchmark
+
+#### 3月20日
+
+<img src="image/40a2d72fd9abcbd2222563436edfd20.png" style="zoom:50%;" />
