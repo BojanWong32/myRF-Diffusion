@@ -284,6 +284,10 @@ def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
 
 学习https://github.com/xyanchen/WiFi-CSI-Sensing-Benchmark
 
-#### 3月20日
+#### 3月25日
 
 <img src="image/40a2d72fd9abcbd2222563436edfd20.png" style="zoom:50%;" />
+
+#### 4月1日
+
+尝试使用https://github.com/yongsen/SignFi
