@@ -4,6 +4,7 @@ import os
 import torch
 import scipy.io as scio
 
+import torch.nn.functional as F
 from argparse import ArgumentParser
 import torch.nn as nn
 from matplotlib import pyplot as plt
@@ -14,7 +15,7 @@ from tfdiff.fmcw_model import tfdiff_fmcw
 from tfdiff.mimo_model import tfdiff_mimo
 from tfdiff.eeg_model import tfdiff_eeg
 from tfdiff.diffusion import SignalDiffusion, GaussianDiffusion
-from tfdiff.dataset import from_path_inference, _nested_map
+from tfdiff.dataset import from_path_inference, _nested_map, times
 
 from tqdm import tqdm
 
@@ -82,9 +83,24 @@ def cal_SNR_MIMO(predict, truth):
     return 10 * np.log10(ratio)
 
 
-def save(out_dir, data, cond, batch, index=0,file_name = 'xxx'):
+def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
     os.makedirs(out_dir, exist_ok=True)
     file_name = os.path.join(out_dir, file_name)
+    time = times[batch]
+    # print(time)
+    # print(data.shape)
+
+    data = torch.view_as_real(data).permute(0, 2, 3, 1)
+    # print(data.shape)
+    data = F.interpolate(data, (2, time), mode='nearest-exact')
+
+    # print(data.shape)
+    data = data.permute(0, 3, 1, 2)
+    data = data.contiguous()
+    # print(data.shape)
+    data = torch.view_as_complex(data)
+    # print(data.shape)
+
     mat_data = {
         'pred': data.numpy(),
         'cond': cond.numpy()
@@ -133,7 +149,6 @@ def main(args):
                 device) if isinstance(x, torch.Tensor) else x)
             data = features['data']
             cond = features['cond']
-            length = features['length']
             # print(data.shape)
             if args.task_id in [0, 1]:
                 # pred = diffusion.sampling(model, cond, device)
@@ -157,7 +172,7 @@ def main(args):
                     # Save the SSIM.
                     ssim_list.append(cur_ssim.item())
 
-                    x = torch.squeeze(cond, dim = 0)
+                    x = torch.squeeze(cond, dim=0)
                     x = torch.squeeze(x, dim=0)
                     x, _ = torch.max(x, dim=1)
                     x = x.tolist()
@@ -165,40 +180,42 @@ def main(args):
                     # print(x)
 
                     file_name = os.path.join(
-                                             'user' + str(x[5]) + '-' + str(x[1]) + '-' + str(x[2]) + '-' + str(
-                                                 x[3]) + '-' + str((cur_batch % 120) // 6 + 1) + '-r' + str(x[4]) + '.mat')
-                    save(out_dir, p_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b,file_name)
-                    save(old_dir, d_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b, file_name)
+                        'user' + str(x[5]) + '-' + str(x[1]) + '-' + str(x[2]) + '-' + str(
+                            x[3]) + '-' + str((cur_batch % 120) // 6 + 1) + '-r' + str(x[4]) + '.mat')
+
+                    save(out_dir, p_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b, file_name)
+                    # save(old_dir, d_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b, file_name)
 
                     # 打印csi对比图
-                    # p_matrix = p_sample.squeeze().cpu().numpy()
-                    # p1_matrix = np.abs(p_matrix)
-                    # plt.plot(p1_matrix[:,1], label='pred_matrix')
-                    #
-                    # d_matrix = d_sample.squeeze().cpu().numpy()
-                    # d1_matrix = np.abs(d_matrix)
-                    # plt.plot(d1_matrix[:,1], label='data_matrix')
-                    #
-                    # plt.title('CSI Waveforms')
-                    # plt.xlabel('Time')
-                    # plt.ylabel('Amplitude')
-                    # plt.legend()
-                    # plt.show()
+                    p_matrix = p_sample.squeeze().cpu().numpy()
+                    p1_matrix = np.abs(p_matrix)
+                    plt.plot(p1_matrix[:, 1], label='pred_matrix')
+
+                    d_matrix = d_sample.squeeze().cpu().numpy()
+                    d1_matrix = np.abs(d_matrix)
+                    plt.plot(d1_matrix[:, 1], label='data_matrix')
+
+                    plt.title('CSI Waveforms')
+                    plt.xlabel('Time')
+                    plt.ylabel('Amplitude')
+                    plt.legend()
+                    plt.show()
 
                     # 打印dfs对比图
-                    # plt.subplot(2, 1, 1)
-                    # plt.specgram(p_matrix[:,1], cmap='jet')
-                    # plt.title('Doppler Shift - Antenna {}'.format(1))
-                    # plt.xlabel('Time')
-                    # plt.ylabel('Frequency')
-                    # plt.colorbar(label='Amplitude')
-                    # plt.subplot(2, 1, 2)
-                    # plt.specgram(d_matrix[:,1], cmap='jet')
-                    # plt.title('Doppler Shift - Antenna {}'.format(1))
-                    # plt.xlabel('Time')
-                    # plt.ylabel('Frequency')
-                    # plt.colorbar(label='Amplitude')
-                    # plt.show()
+                    plt.subplot(2, 1, 1)
+                    plt.specgram(p_matrix[:, 1], cmap='jet')
+                    plt.title('Doppler Shift-pred')
+                    plt.xlabel('Time')
+                    plt.ylabel('Frequency')
+                    plt.colorbar(label='Amplitude')
+                    plt.subplot(2, 1, 2)
+                    plt.specgram(d_matrix[:, 1], cmap='jet')
+                    plt.title('Doppler Shift-data')
+                    plt.xlabel('Time')
+                    plt.ylabel('Frequency')
+                    plt.colorbar(label='Amplitude')
+                    plt.subplots_adjust(hspace=0.5)
+                    plt.show()
 
                 cur_batch += 1
             if args.task_id in [2, 3]:
@@ -220,6 +237,9 @@ def main(args):
                 cur_batch += 1
         if args.task_id in [0, 1]:
             print(ssim_list)
+            with open("data.txt", "w") as file:
+                file.write(','.join(str(num) for num in ssim_list))
+
             print(f'Average SSIM: {np.mean(ssim_list)}.')
         if args.task_id in [2, 3]:
             print(f'Average SNR: {np.mean(snr_list)}.')

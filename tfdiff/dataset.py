@@ -16,6 +16,7 @@ from torch.utils.data.distributed import DistributedSampler
 # room_key='room',
 # rx_key='rx',
 # user_key='user',
+times = []
 
 
 def _nested_map(struct, map_fn):
@@ -44,6 +45,8 @@ class WiFiDataset(torch.utils.data.Dataset):
         # cur_data = torch.from_numpy(cur_sample['csi_data']).to(torch.complex64)
         cur_data = torch.from_numpy(cur_sample['feature']).to(torch.complex64)
         cur_cond = torch.from_numpy(cur_sample['cond']).to(torch.complex64)
+        times.append(cur_data.shape[0])
+        # print(cur_data.shape[0])
         return {
             'data': cur_data,
             'cond': cur_cond.squeeze(0)
@@ -127,6 +130,7 @@ class Collator:
                     del record['cond']
                     continue
                 data = torch.view_as_real(record['data']).permute(1, 2, 0)
+                # print(data.shape)
                 down_sample = F.interpolate(data, sample_rate, mode='nearest-exact')
                 norm_data = (down_sample - down_sample.mean()) / down_sample.std()
 
