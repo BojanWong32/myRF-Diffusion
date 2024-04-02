@@ -205,7 +205,7 @@ cfr_array = reshape(pred, [512, 90]);
 #### 1月23日
 复现结果不理想，随着合成数据的增加，准确度反而下降
 
-<img src="image/image.png" style="zoom:50%;" />
+<img src="image/image_old.png" style="zoom:50%;" />
 
 可能失败原因：
 
@@ -244,3 +244,50 @@ cfr_array = reshape(pred, [512, 90]);
 #### 1月31日，更新
 
 使用时间长度为t的真实CSI矩阵训练无线感知系统，最终准确度有90%，算是达到了标准，看来矩阵长度确实也应该算是重要特征之一。
+
+#### 2月1日
+
+```
+def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
+    os.makedirs(out_dir, exist_ok=True)
+    file_name = os.path.join(out_dir, file_name)
+    time = times[batch]
+    # print(time)
+    # print(data.shape)
+
+    data = torch.view_as_real(data).permute(0, 2, 3, 1)
+    # print(data.shape)
+    data = F.interpolate(data, (2, time), mode='nearest-exact')
+
+    # print(data.shape)
+    data = data.permute(0, 3, 1, 2)
+    data = data.contiguous()
+    # print(data.shape)
+    data = torch.view_as_complex(data)
+    # print(data.shape)
+
+    mat_data = {
+        'pred': data.numpy(),
+        'cond': cond.numpy()
+    }
+    # print(file_name)
+    scio.savemat(file_name, mat_data)
+```
+修改save函数，使其根据原CSI矩阵时间长度，将合成数据变成相应大小。
+
+#### 2月3日
+
+<img src="image/image.png" style="zoom:50%;" />
+又复现失败了，感觉是这个Widar3数据集的无线感知神经网络太复杂，换一个简单的再试试
+
+#### 2月14日
+
+学习https://github.com/xyanchen/WiFi-CSI-Sensing-Benchmark
+
+#### 3月25日
+
+<img src="image/40a2d72fd9abcbd2222563436edfd20.png" style="zoom:50%;" />
+
+#### 4月1日
+
+尝试使用https://github.com/yongsen/SignFi
