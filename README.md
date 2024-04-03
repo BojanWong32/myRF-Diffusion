@@ -334,4 +334,26 @@ end
 #### 4月3日
 
 训练大约20h，训练了50轮，loss约为1e-2数量级。
+修改BVP合成代码
+首先是原先的-rx变成合集的第x个30列
+```
+function [cfr_array, timestamp] = csi_get_all(filename)
 
+csi_trace = 512;
+timestamp = zeros(length(csi_trace), 1);
+% cfr_array = zeros(length(csi_trace), 90);
+
+pattern = '-r(\d+)';
+num = regexp(filename, pattern, 'match', 'once');
+filename = regexprep(filename, num, '');
+value = str2double(regexprep(num, '-r', ''));
+
+disp(value);
+
+matrix = load(filename);
+data = matrix.data(:,(value-1)*30+1 : value*30);
+
+data = double(data);
+
+cfr_array = squeeze(data);
+```
