@@ -291,3 +291,47 @@ def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
 #### 4月1日
 
 尝试使用https://github.com/yongsen/SignFi
+
+#### 4月2日
+
+将512*90*6变成512*180
+```
+path = 'D:\RFDiffusion\RF-Diffusion-main\dataset\wifi\old2';
+new_path = 'D:\RFDiffusion\RF-Diffusion-main\dataset\wifi\merge';
+
+files = dir(path);
+
+files_per_group = 6;
+
+for i = 3:files_per_group:numel(files)
+    old_file_name = files(i).name;
+    new_file_name = regexprep(old_file_name, '-r\d+', '');
+    new_file_path = fullfile(new_path, new_file_name);
+    
+    data = zeros(512,180);
+    start_col = 1;
+
+    for j = i:min(i + files_per_group - 1, numel(files))
+        file_name = files(j).name;
+        file_path = fullfile(path, file_name);
+
+        current_file = load(file_path);
+        if j == i
+            cond = current_file.cond; 
+        end
+
+        end_col = start_col + 29;
+        matrix =  squeeze(current_file.pred);
+        data(:,start_col:end_col) = matrix(1:512,1:30);
+        start_col = end_col + 1;
+    end
+    
+    save(new_file_path, 'data','cond');
+end
+```
+修改参数，input_dim=180，extra_dim=180,signal_diffusion=False,batch_size=4
+
+#### 4月3日
+
+训练大约20h，训练了50轮，loss约为1e-2数量级。
+
