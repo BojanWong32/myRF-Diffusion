@@ -334,8 +334,11 @@ end
 #### 4月3日
 
 训练大约20h，训练了50轮，loss约为1e-2数量级。
-修改BVP合成代码
+
+再次修改BVP合成代码，512\*90\*6 改512\*180
+
 首先是原先的-rx变成合集的第x个30列
+
 ```
 function [cfr_array, timestamp] = csi_get_all(filename)
 
@@ -357,3 +360,13 @@ data = double(data);
 
 cfr_array = squeeze(data);
 ```
+数组越界，调试，发现问题所在，尝试改动
+
+```
+% Conj Mult
+conj_mult = csi_data_adj .* conj(csi_data_ref_adj);
+%conj_mult = [conj_mult(:,1:30*(idx - 1)) conj_mult(:,30*idx+1:90)];
+```
+16：49开始合成真实数据BVP750组
+
+
