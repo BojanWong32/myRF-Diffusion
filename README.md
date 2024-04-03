@@ -294,7 +294,7 @@ def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
 
 #### 4月2日
 
-将512/*90/*6变成512/*180
+将512\*90\*6变成512\*180
 ```
 path = 'D:\RFDiffusion\RF-Diffusion-main\dataset\wifi\old2';
 new_path = 'D:\RFDiffusion\RF-Diffusion-main\dataset\wifi\merge';
