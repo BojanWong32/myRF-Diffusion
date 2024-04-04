@@ -369,4 +369,8 @@ conj_mult = csi_data_adj .* conj(csi_data_ref_adj);
 ```
 16：49开始合成真实数据BVP750组
 
+#### 4月4日
 
+<img src="image/image4_4.png" style="zoom:50%;" />
+
+算是看到些上升的趋势吧，但是准确率太低了。
