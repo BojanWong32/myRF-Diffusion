@@ -480,3 +480,6 @@ test_loss, test_accuracy = model.evaluate(test_data, test_labels)
 print('Test Loss:', test_loss)
 print('Test Accuracy:', test_accuracy)
 ```
+<img src="image/Line_4_5.png" style="zoom:50%;" />
+
+准确率从30%左右提高到40%以上
