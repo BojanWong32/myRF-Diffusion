@@ -483,3 +483,17 @@ print('Test Accuracy:', test_accuracy)
 <img src="image/Line_4_5.png" style="zoom:50%;" />
 
 准确率从30%左右提高到40%以上
+
+
+#### 4月7日
+
+<img src="image/Line_4_7.png" style="zoom:50%;" />
+
+继续增加合成数据直到1：1，到达一定水平后不再增加
+
+#### 4月10日
+
+对数据进行一些预处理，将complex64拆分成float数组传入模型
+
+
+
