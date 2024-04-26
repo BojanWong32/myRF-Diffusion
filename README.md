@@ -521,7 +521,7 @@ def LoadSinglefile(fileName, numAdcSamples, numRX, numTx):
     LVDS = LVDS.reshape(-1)
     numChirps = filesize // (2 * numAdcSamples * numRX)
     # Chirp(一共收发了这些个Chirps), numTx*numSamples*numRx
-    LVDS = LVDS[:np.prod(numChirps // numTx * numAdcSamples * numRX * numTx)].reshape(numChirps // numTx, numAdcSamples * numRX * numTx) # 舍掉多余的
+    LVDS = LVDS[:np.prod(numChirps // numTx * numAdcSamples * numRX * numTx)].reshape(numChirps // numTx, numAdcSamples * numRX * numTx)
     # print(LVDS.shape)
     # 每个Chirp中分别包含了12个虚拟收发天线之间的数据 Chirps,12根虚拟天线接收的ADCSamples
     LVDS = LVDS.reshape(-1, numTx * numRX, numAdcSamples).swapaxes(1, 0)
@@ -533,7 +533,7 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
     adcDataList = []
 
     framecount = 0
-    for ii in range(0, 2, 1):
+    for ii in range(0, 1, 1):
         fileNamecur = fileName + "_Raw_" + str(ii) + ".bin"
         print("Cur FileName: ", fileNamecur)
         adcData = LoadSinglefile(fileNamecur, numAdcSamples, numRX, numTx)
@@ -545,9 +545,15 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
             adcDataIn = adcDataIn.reshape(numRX * numTx, Nfft2, Nfft1)  # numRx*numTx,Nfft2, NumSample
             adcDataout = np.fft.fft2(adcDataIn)  # numRx*numTx, Nfft2, Nfft1
             adcDataoutshift = np.fft.fftshift(adcDataout, axes=1)
-            print(adcDataoutshift.shape)
+
+            # print(adcDataoutshift.shape)
+            file_name = folderProcessed + "/People" + str(peopleProcessing) + "_" + str(framecount) + ".mat"
+
+            sio.savemat(file_name, {"label": peopleProcessing, "data": adcDataoutshift})
+
             adcDataList.append(adcDataoutshift)
             framecount += 1
+
 ```
-最终处理后的数据集（3*4）*128*256*（600*22）
+最终处理后的数据集（3\*4）\*128\*256\*（600\*22）
 
