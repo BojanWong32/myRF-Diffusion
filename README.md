@@ -555,5 +555,9 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
             framecount += 1
 
 ```
-最终处理后的数据集（3\*4）\*128\*256\*（600\*22）
+只使用Empty的数据集，最终处理后的数据集（3\*4）\*128\*256\*（600\*22），3是发送天线数量，4是接收天线数量，128是每一帧的chirp数量，256是每一帧的采样率，共22个人，每一个人600个数据。
+
+
+
+#### 4月25日
 
