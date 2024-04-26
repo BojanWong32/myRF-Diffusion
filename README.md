@@ -561,3 +561,4 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
 
 #### 4月25日
 
+数据处理，选择256\*128进行训练，参数调整，sample_rate=256，input_dim=128，cond_dim=1
