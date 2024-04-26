@@ -549,5 +549,5 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
             adcDataList.append(adcDataoutshift)
             framecount += 1
 ```
-最终处理后的数据集（3/*4）/*128/*256/*（600/*22）
+最终处理后的数据集（3*4）*128*256*（600*22）
 
