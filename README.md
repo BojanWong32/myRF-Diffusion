@@ -567,6 +567,10 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
 
 数据量比较大，用时18h，训练4epoch，损失率1e-2
 
+<img src="image/ssim_cdf.png" style="zoom:50%;" />
+平均ssim为0.8182，CDF曲线如上图。
+
+
 #### 4月27日
 
 参考https://blog.csdn.net/Pin_BOY/article/details/116407502  ，尝试使用requirement.txt导入docker
