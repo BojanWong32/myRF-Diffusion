@@ -562,3 +562,12 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
 #### 4月25日
 
 数据处理，选择256\*128进行训练，参数调整，sample_rate=256，input_dim=128，cond_dim=1
+
+#### 4月26日
+
+数据量比较大，用时18h，训练4epoch，损失率1e-2
+
+#### 4月27日
+
+参考https://blog.csdn.net/Pin_BOY/article/details/116407502，尝试使用requirement.txt导入docker
+
