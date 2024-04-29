@@ -575,3 +575,9 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
 
 参考https://blog.csdn.net/Pin_BOY/article/details/116407502  ，尝试使用requirement.txt导入docker
 
+
+#### 4月29日
+
+ValueError: num_samples should be a positive integer value, but got num_samples=0
+
+解决方法 https://blog.csdn.net/qq_38681990/article/details/119606840  ，windows和linux的pytorch的dataLoader些许差别。
