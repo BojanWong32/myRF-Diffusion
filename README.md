@@ -581,3 +581,28 @@ def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numCh
 ValueError: num_samples should be a positive integer value, but got num_samples=0
 
 解决方法 https://blog.csdn.net/qq_38681990/article/details/119606840  ，windows和linux的pytorch的dataLoader些许差别。
+
+RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx
+
+解决方法https://www.cnblogs.com/chester-cs/p/14444247.html ，添加参数--gpus all
+
+FileExistsError: [Errno 17] File exists: 'weights-3300.pt' -> './project/model/fmcw/b32-256-100s/weights.pt'
+
+```
+if os.name == 'nt':
+    torch.save(self.state_dict(), link_name)
+else:
+    if os.path.islink(link_name):
+        os.unlink(link_name)
+    os.symlink(save_basename, link_name)
+```
+报错代码如上，可以看到针对windows和linux采用了不同的代码
+
+删除build cache能提高镜像build速度， docker builder prune
+
+创建镜像，docker build --no-cache -t wbfmcw .
+
+运行镜像，docker run --rm --gpus all wbfmcw
+
+
+
