@@ -6,6 +6,8 @@
 
 ##### 1.测试代码可行性
 
+数据解析https://github.com/zzh606/wifi-csi
+
 该扩散模型所应用的数据集是处理后的Widar3.0数据集，分为feature和condition两部分。其中feature指特征矩阵，是一个t\*90的复数双精度矩阵，t表示时间长度，90由30\*3组成，3是天线数量，30是每根天线每个时间点发送的包数。condition表示标签，分别表示“房间-手势-躯干位置-面部朝向-接收器ID-userID”（1\*6\*5\*5\*20\*6）。
 
 <img src="image/image-20240120124212107.png" style="zoom:33%;" />
