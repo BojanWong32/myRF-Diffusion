@@ -4,6 +4,7 @@ import random
 import torch
 import torch.nn.functional as F
 import scipy.io as scio
+from scipy.ndimage import zoom
 from tfdiff.params import AttrDict
 from glob import glob
 from torch.utils.data.distributed import DistributedSampler
@@ -60,14 +61,21 @@ class FMCWDataset(torch.utils.data.Dataset):
         for path in paths:
             self.filenames += glob(f'{path}/**/*.mat', recursive=True)
 
+
     def __len__(self):
         return len(self.filenames)
 
     def __getitem__(self, idx):
         cur_filename = self.filenames[idx]
         cur_sample = scio.loadmat(cur_filename)
-        cur_data = torch.from_numpy(cur_sample['feature']).to(torch.complex64)
-        cur_cond = torch.from_numpy(cur_sample['cond'].astype(np.int16)).to(torch.complex64)
+        # data = zoom(np.transpose(cur_sample['data']), (2, 1))
+        data = np.transpose(cur_sample['data'])
+
+        cur_data = torch.from_numpy(data).to(torch.complex64)
+        cur_cond = torch.from_numpy(cur_sample['label'].astype(np.int16)).to(torch.complex64)
+
+        # print(cur_data.shape)
+        # print(cur_cond.shape)
         return {
             'data': cur_data,
             'cond': cur_cond.squeeze(0)

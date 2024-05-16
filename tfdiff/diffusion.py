@@ -15,7 +15,9 @@ class SignalDiffusion(nn.Module):
         beta = np.array(self.params.noise_schedule)  # \beta, [T] , 长度100的等差数列，逐渐增大
         self.alpha = torch.tensor((1 - beta).astype(np.float32))  # \alpha_t [T]
         self.alpha_bar = torch.cumprod(self.alpha, dim=0)  # \bar{\alpha_t}, [T],\alpha_t累乘
-        self.var_blur = torch.tensor(np.array(self.params.blur_schedule).astype(np.float32))  # var of blur kernels on the frequency domain for each diffusion step
+
+        self.var_blur = torch.tensor(np.array(self.params.blur_schedule).astype(np.float32))
+        # var of blur kernels on the frequency domain for each diffusion step
         self.var_blur_bar = torch.cumsum(self.var_blur, dim=0)  # var of blur kernels on the frequency domain, [T]
         self.var_kernel = (self.input_dim / self.var_blur).unsqueeze(1)  # var of each G_t, [T, 1]
         self.var_kernel_bar = (self.input_dim / self.var_blur_bar).unsqueeze(1)  # var of each \bar{G_t}, [T, 1]
@@ -96,7 +98,7 @@ class SignalDiffusion(nn.Module):
                                           rev_one_minus_alpha_sqrt))  # [t, N]
         return torch.stack(noise_weights, dim=0)  # [T, N]
 
-    def degrade_fn(self, x_0, t, task_id):
+    def degrade_fn(self, x_0, t, task_id=0):
         device = x_0.device
         if task_id in [0, 1]:
             noise_weight = self.noise_weights[t, :].unsqueeze(-1).unsqueeze(-1).to(

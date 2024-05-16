@@ -6,6 +6,7 @@ import scipy.io as scio
 
 import torch.nn.functional as F
 from argparse import ArgumentParser
+from skimage.metrics import structural_similarity as ssim
 import torch.nn as nn
 from matplotlib import pyplot as plt
 
@@ -55,8 +56,26 @@ def eval_ssim(pred, data, height, width, device):
     C2 = 0.03 ** 2
     ssim_map = ((2 * mu_pred * mu_data + C1) * (2 * tfdiff_pred_data.real + C2)) / (
             (mu_pred_pow + mu_data_pow + C1) * (tfdiff_pred + tfdiff_data + C2))
-    return 2 * ssim_map.mean().real
+    return ssim_map.mean().real
 
+def eval_ssim_wifi(pred, data, height, width, device):
+    window = create_window(height, width).to(torch.complex64).to(device)
+    padding = [height // 2, width // 2]
+    mu_pred = torch.nn.functional.conv2d(pred, window, padding=padding, groups=1)
+    mu_data = torch.nn.functional.conv2d(data, window, padding=padding, groups=1)
+    # print(mu_pred.shape)
+    # print(mu_data.shape)
+    mu_pred_pow = mu_pred.pow(2.)
+    mu_data_pow = mu_data.pow(2.)
+    mu_pred_data = mu_pred * mu_data
+    tfdiff_pred = torch.nn.functional.conv2d(pred * pred, window, padding=padding, groups=1) - mu_pred_pow
+    tfdiff_data = torch.nn.functional.conv2d(data * data, window, padding=padding, groups=1) - mu_data_pow
+    tfdiff_pred_data = torch.nn.functional.conv2d(pred * data, window, padding=padding, groups=1) - mu_pred_data
+    C1 = 0.01 ** 2
+    C2 = 0.03 ** 2
+    ssim_map = ((2 * mu_pred * mu_data + C1) * (2 * tfdiff_pred_data.real + C2)) / (
+            (mu_pred_pow + mu_data_pow + C1) * (tfdiff_pred + tfdiff_data + C2))
+    return 2 * ssim_map.mean().real
 
 def cal_SNR_EEG(predict, truth):
     if torch.is_tensor(predict):
@@ -86,13 +105,13 @@ def cal_SNR_MIMO(predict, truth):
 def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
     os.makedirs(out_dir, exist_ok=True)
     file_name = os.path.join(out_dir, file_name)
-    time = times[batch]
+    # time = times[batch]
     # print(time)
     # print(data.shape)
 
     data = torch.view_as_real(data).permute(0, 2, 3, 1)
     # print(data.shape)
-    data = F.interpolate(data, (2, time), mode='nearest-exact')
+    # data = F.interpolate(data, (2, time), mode='nearest-exact')
 
     # print(data.shape)
     data = data.permute(0, 3, 1, 2)
@@ -139,6 +158,7 @@ def main(args):
         params) if params.signal_diffusion else GaussianDiffusion(params)
     # Construct inference dataset.
     dataset = from_path_inference(params)
+    files = os.listdir(params.cond_dir[0])
     # Sampling process.
     with torch.no_grad():
         cur_batch = 0
@@ -168,54 +188,69 @@ def main(args):
                     # print("d_shape" + str(d_sample.shape))
 
                     cur_ssim = eval_ssim(p_sample, d_sample, params.sample_rate, params.input_dim, device=device)
+
+                    # p = p_sample.cpu().numpy().reshape(params.sample_rate, params.input_dim)
+                    # d = d_sample.cpu().numpy().reshape(params.sample_rate, params.input_dim)
+                    # real1 = np.real(p)
+                    # # imag1 = np.imag(p)
+                    # real2 = np.real(d)
+                    # # imag2 = np.imag(d)
+                    #
+                    # # matrix1 = np.stack([real1, imag1], axis=-1)
+                    # # matrix2 = np.stack([real2, imag2], axis=-1)
+                    # # print(matrix2.shape)
+                    #
+                    # cur_ssim = ssim(real1, real2, data_range=1.0)
+
                     print(cur_ssim)
                     # Save the SSIM.
                     ssim_list.append(cur_ssim.item())
 
-                    x = torch.squeeze(cond, dim=0)
-                    x = torch.squeeze(x, dim=0)
-                    x, _ = torch.max(x, dim=1)
-                    x = x.tolist()
-                    x = np.int_(x)
-                    # print(x)
+                    # x = torch.squeeze(cond, dim=0)
+                    # x = torch.squeeze(x, dim=0)
+                    # x, _ = torch.max(x, dim=1)
+                    # x = x.tolist()
+                    # x = np.int_(x)
+                    # # print(x)
+                    #
+                    # file_name = os.path.join(
+                    #     'user' + str(x[5]) + '-' + str(x[1]) + '-' + str(x[2]) + '-' + str(
+                    #         x[3]) + '-' + str((cur_batch % 120) // 6 + 1) + '-r' + str(x[4]) + '.mat')
 
-                    file_name = os.path.join(
-                        'user' + str(x[5]) + '-' + str(x[1]) + '-' + str(x[2]) + '-' + str(
-                            x[3]) + '-' + str((cur_batch % 120) // 6 + 1) + '-r' + str(x[4]) + '.mat')
-
+                    file_name = files[cur_batch]
                     save(out_dir, p_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b, file_name)
                     # save(old_dir, d_sample.cpu().detach(), cond_samples[b].cpu().detach(), cur_batch, b, file_name)
 
                     # 打印csi对比图
-                    p_matrix = p_sample.squeeze().cpu().numpy()
-                    p1_matrix = np.abs(p_matrix)
-                    plt.plot(p1_matrix[:, 1], label='pred_matrix')
-
-                    d_matrix = d_sample.squeeze().cpu().numpy()
-                    d1_matrix = np.abs(d_matrix)
-                    plt.plot(d1_matrix[:, 1], label='data_matrix')
-
-                    plt.title('CSI Waveforms')
-                    plt.xlabel('Time')
-                    plt.ylabel('Amplitude')
-                    plt.legend()
-                    plt.show()
-
-                    # 打印dfs对比图
-                    plt.subplot(2, 1, 1)
-                    plt.specgram(p_matrix[:, 1], cmap='jet')
-                    plt.title('Doppler Shift-pred')
-                    plt.xlabel('Time')
-                    plt.ylabel('Frequency')
-                    plt.colorbar(label='Amplitude')
-                    plt.subplot(2, 1, 2)
-                    plt.specgram(d_matrix[:, 1], cmap='jet')
-                    plt.title('Doppler Shift-data')
-                    plt.xlabel('Time')
-                    plt.ylabel('Frequency')
-                    plt.colorbar(label='Amplitude')
-                    plt.subplots_adjust(hspace=0.5)
-                    plt.show()
+                    # p_matrix = p_sample.squeeze().cpu().numpy()
+                    # p1_matrix = np.abs(p_matrix)
+                    # plt.plot(p1_matrix[:, 1], label='pred_matrix')
+                    #
+                    # d_matrix = d_sample.squeeze().cpu().numpy()
+                    # d1_matrix = np.abs(d_matrix)
+                    # plt.plot(d1_matrix[:, 1], label='data_matrix')
+                    #
+                    # plt.title('CSI Waveforms')
+                    # plt.xlabel('Time')
+                    # plt.ylabel('Amplitude')
+                    # plt.legend()
+                    # plt.show()
+                    #
+                    # # 打印dfs对比图
+                    # plt.subplot(2, 1, 1)
+                    # plt.specgram(p_matrix[:, 1], cmap='jet')
+                    # plt.title('Doppler Shift-pred')
+                    # plt.xlabel('Time')
+                    # plt.ylabel('Frequency')
+                    # plt.colorbar(label='Amplitude')
+                    # plt.subplot(2, 1, 2)
+                    # plt.specgram(d_matrix[:, 1], cmap='jet')
+                    # plt.title('Doppler Shift-data')
+                    # plt.xlabel('Time')
+                    # plt.ylabel('Frequency')
+                    # plt.colorbar(label='Amplitude')
+                    # plt.subplots_adjust(hspace=0.5)
+                    # plt.show()
 
                 cur_batch += 1
             if args.task_id in [2, 3]:
@@ -236,9 +271,10 @@ def main(args):
                 save(out_dir, pred.cpu().detach(), cond.cpu().detach(), cur_batch)
                 cur_batch += 1
         if args.task_id in [0, 1]:
-            print(ssim_list)
-            with open("data.txt", "w") as file:
-                file.write(','.join(str(num) for num in ssim_list))
+            # print(ssim_list)
+            # with open("data.txt", "w") as file:
+            #     file.write(','.join(str(num) for num in ssim_list))
+            scio.savemat("exp_overall_ssim_fmcw.mat", {'data_fmcw_sigma': ssim_list})
 
             print(f'Average SSIM: {np.mean(ssim_list)}.')
         if args.task_id in [2, 3]:

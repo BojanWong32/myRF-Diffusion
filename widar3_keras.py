@@ -20,8 +20,8 @@ from sklearn.model_selection import train_test_split
 index = 5
 use_existing_model = False
 fraction_for_test = 0.1
-data_dir = 'D:/googleDownload/BVPExtractionCode/Widar3.0Release-Matlab/BVP_old3'
-new_data_dir = 'D:/googleDownload/BVPExtractionCode/Widar3.0Release-Matlab/BVP_new'
+data_dir = 'D:/googleDownload/BVPExtractionCode/Widar3.0Release-Matlab/merge_old_BVP'
+new_data_dir = 'D:/googleDownload/BVPExtractionCode/Widar3.0Release-Matlab/merge_new_BVP'
 ALL_MOTION = [1, 2, 3, 4, 5, 6]
 N_MOTION = len(ALL_MOTION)
 T_MAX = 0
@@ -70,6 +70,7 @@ def load_data(path_to_data, motion_sel, mark):
         for data_file_name in data_files:
 
             file_path = os.path.join(data_root, data_file_name)
+            # print(file_path)
             try:
                 data_1 = scio.loadmat(file_path)['velocity_spectrum_ro']
                 label_1 = int(data_file_name.split('-')[1])
@@ -106,6 +107,7 @@ def load_data(path_to_data, motion_sel, mark):
 
     # Zero-padding
     data = zero_padding(data, T_MAX)
+    # print(data.shape)
 
     # Swap axes
     data = np.swapaxes(np.swapaxes(data, 1, 3), 2, 3)  # [N,20,20',T_MAX]=>[N,T_MAX,20,20']
@@ -158,11 +160,11 @@ else:
     exit(0)
 
 # Load data
-data, label = load_data(data_dir, ALL_MOTION, 1)
-# data2, label2 = load_data(new_data_dir, ALL_MOTION, 1)
-#
-# data = np.concatenate((data, data2), axis=0)
-# label = np.concatenate((label, label2), axis=0)
+data, label = load_data(data_dir, ALL_MOTION, 0)
+data2, label2 = load_data(new_data_dir, ALL_MOTION, 1)
+
+data = np.concatenate((data, data2), axis=0)
+label = np.concatenate((label, label2), axis=0)
 
 print('\nLoaded dataset of ' + str(label.shape[0]) + ' samples, each sized ' + str(data[0, :, :].shape) + '\n')
 

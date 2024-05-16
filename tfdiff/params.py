@@ -16,6 +16,7 @@ class AttrDict(dict):
             raise NotImplementedError
         return self
 
+
 # ========================
 # Wifi Parameter Setting.
 # ========================
@@ -23,12 +24,12 @@ params_wifi = AttrDict(
     task_id=0,
     log_dir='./log/wifi',
     model_dir='./model/wifi/b32-256-100s',
-    data_dir=['dataset/wifi/raw'],
-    out_dir='./dataset/wifi/output3',
+    data_dir=['dataset/wifi/merge'],
+    out_dir='./dataset/wifi/output_4_5_6',
     cond_dir=['dataset/wifi/raw'],
     # Training params
-    max_iter=None, # Unlimited number of iterations.
-    batch_size=8,  # old 32
+    max_iter=None,  # Unlimited number of iterations.
+    batch_size=4,  # old 32
     learning_rate=1e-3,
     max_grad_norm=None,
     # Inference params
@@ -51,7 +52,7 @@ params_wifi = AttrDict(
     signal_diffusion=True,
     max_step=100,
     # variance of the guassian blur applied on the spectrogram on each diffusion step [T]
-    blur_schedule=((1e-5**2) * np.ones(100)).tolist(),
+    blur_schedule=((1e-5 ** 2) * np.ones(100)).tolist(),
     # \beta_t, noise level added to the signal on each diffusion step [T]
     noise_schedule=np.linspace(1e-4, 0.003, 100).tolist(),
 )
@@ -67,18 +68,18 @@ params_fmcw = AttrDict(
     out_dir='./dataset/fmcw/output',
     cond_dir=['./dataset/fmcw/cond'],
     # Training params
-    max_iter=None, # Unlimited number of iterations.
-    batch_size=32,
+    max_iter=None,  # Unlimited number of iterations.
+    batch_size=16,
     learning_rate=1e-3,
     max_grad_norm=None,
     # Inference params
     inference_batch_size=1,
     robust_sampling=True,
     # Data params
-    sample_rate=512,
+    sample_rate=256,  # 256
     input_dim=128,
     extra_dim=[128],
-    cond_dim=6,
+    cond_dim=1,
     # Model params
     embed_dim=256,
     hidden_dim=256,
@@ -91,7 +92,7 @@ params_fmcw = AttrDict(
     signal_diffusion=True,
     max_step=100,
     # variance of the guassian blur applied on the spectrogram on each diffusion step [T]
-    blur_schedule=((1e-5**2) * np.ones(100)).tolist(),
+    blur_schedule=((1e-5 ** 2) * np.ones(100)).tolist(),
     # \beta_t, noise level added to the signal on each diffusion step [T]
     noise_schedule=np.linspace(1e-4, 0.003, 100).tolist(),
 )
@@ -107,9 +108,9 @@ params_mimo = AttrDict(
     out_dir='./dataset/mimo/output',
     cond_dir=['./dataset/mimo/cond'],
     # Training params
-    max_iter=None, # Unlimited number of iterations.
+    max_iter=None,  # Unlimited number of iterations.
     # for inference use
-    batch_size = 8,
+    batch_size=8,
     # batch_size=24,
     learning_rate=1e-4,
     max_grad_norm=None,
@@ -120,7 +121,7 @@ params_mimo = AttrDict(
     sample_rate=14,
     # TransEmbedding
     extra_dim=[26, 96],
-    cond_dim= [26, 96],
+    cond_dim=[26, 96],
     # Model params
     embed_dim=256,
     spatial_hidden_dim=128,
@@ -135,11 +136,10 @@ params_mimo = AttrDict(
     signal_diffusion=True,
     max_step=200,
     # variance of the guassian blur applied on the spectrogram on each diffusion step [T]
-    blur_schedule=((0.1**2) * np.ones(200)).tolist(),
+    blur_schedule=((0.1 ** 2) * np.ones(200)).tolist(),
     # \beta_t, noise level added to the signal on each diffusion step [T]
     noise_schedule=np.linspace(5e-4, 0.1, 200).tolist(),
 )
-
 
 # ======================
 # EEG Parameter Setting. 
@@ -152,9 +152,9 @@ params_eeg = AttrDict(
     out_dir='./dataset/eeg/output',
     cond_dir=['./dataset/eeg/cond'],
     # Training params
-    max_iter=None, # Unlimited number of iterations.
+    max_iter=None,  # Unlimited number of iterations.
     # for inference use
-    batch_size = 8,
+    batch_size=8,
     learning_rate=1e-4,
     max_grad_norm=None,
     # Inference params
@@ -162,8 +162,8 @@ params_eeg = AttrDict(
     robust_sampling=True,
     # Data params
     sample_rate=512,
-    extra_dim=[1,1], 
-    cond_dim=512,   
+    extra_dim=[1, 1],
+    cond_dim=512,
     # Model params
     embed_dim=256,
     hidden_dim=256,
@@ -177,10 +177,9 @@ params_eeg = AttrDict(
     signal_diffusion=True,
     max_step=200,
     # variance of the guassian blur applied on the spectrogram on each diffusion step [T]
-    blur_schedule=((0.1**2) * np.ones(200)).tolist(),
+    blur_schedule=((0.1 ** 2) * np.ones(200)).tolist(),
     # \beta_t, noise level added to the signal on each diffusion step [T]
     noise_schedule=np.linspace(5e-4, 0.1, 200).tolist(),
 )
-
 
 all_params = [params_wifi, params_fmcw, params_mimo, params_eeg]

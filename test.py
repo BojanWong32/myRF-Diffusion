@@ -21,19 +21,67 @@
 # plt.xlabel('Time')
 # plt.ylabel('Amplitude')
 # plt.show()
-import matplotlib.pyplot as plt
-plt.rcParams['font.sans-serif'] = ['SimHei']
-# 准备数据
-x = [0, 0.05, 0.1, 0.15, 0.20, 0.25]
-y = [0.9623, 0.9339, 0.9257, 0.8962, 0.8991, 0.89573]
+# import matplotlib.pyplot as plt
+# plt.rcParams['font.sans-serif'] = ['SimHei']
+# # 准备数据
+# x = [0, 0.25, 0.5, 0.75, 1.00]
+# y = [0.2954, 0.4465, 0.5612, 0.5477, 0.5292]
+#
+# # 绘制折线图
+# plt.plot(x, y)
+#
+# # 添加标题和坐标轴标签
+# plt.title('折线图示例')
+# plt.xlabel('数据增强量')
+# plt.ylabel('准确度')
+#
+# # 显示图形
+# plt.show()
 
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+
+plt.rcParams['font.sans-serif'] = ['SimHei']
+
+# 准备数据
+x = [0, 0.25, 0.5, 0.75, 1.00]
+y = [0.2954, 0.4465, 0.5612, 0.5477, 0.5292]
+
+# x = [0, 0.05, 0.10, 0.15, 0.20, 0.25]
+# y = [0.2954, 0.4465, 0.5612, 0.5477, 0.5292]
+
+# y = [0.29, 0.27, 0.35,0.34,0.32, 0.44]
 # 绘制折线图
 plt.plot(x, y)
 
 # 添加标题和坐标轴标签
 plt.title('折线图示例')
-plt.xlabel('合成数据与真实数据比值')
-plt.ylabel('无限感知系统准确度')
+plt.xlabel('数据增强量')
+plt.ylabel('准确度')
+
+# 自定义横轴刻度标签
+x_labels = ['+0%', '+25%', '+50%', '+75%', '+100%']
+# x_labels = ['+0%', '+5%', '+10%', '+15%', '+20%', '+25%']
+plt.xticks(x, x_labels)
+
+# 在纵轴上画虚线
+plt.axhline(y=0.3, color='gray', linestyle='--')
+plt.axhline(y=0.35, color='gray', linestyle='--')
+plt.axhline(y=0.40, color='gray', linestyle='--')
+plt.axhline(y=0.45, color='gray', linestyle='--')
+plt.axhline(y=0.50, color='gray', linestyle='--')
+plt.axhline(y=0.55, color='gray', linestyle='--')
+# plt.axhline(y=0.425, color='gray', linestyle='--')
+
+# 在横轴上画虚线
+plt.axvline(x=0.0, color='gray', linestyle='--')
+plt.axvline(x=0.25, color='gray', linestyle='--')
+plt.axvline(x=0.50, color='gray', linestyle='--')
+plt.axvline(x=0.75, color='gray', linestyle='--')
+plt.axvline(x=1, color='gray', linestyle='--')
+# plt.axvline(x=0.25, color='gray', linestyle='--')
+
+plt.scatter(x, y, marker='x', color='red', s=50)
 
 # 显示图形
 plt.show()

@@ -98,8 +98,10 @@ class tfdiffLearner:
 
     def train(self, max_iter=None):
         device = next(self.model.parameters()).device
+
         # self.prof.start()
         while True:  # epoch
+            #sum_loss = 0
             for features in tqdm(self.dataset,
                                  desc=f'Epoch {self.iter // len(self.dataset)}') if self.is_master else self.dataset:
                 if max_iter is not None and self.iter >= max_iter:
@@ -109,6 +111,7 @@ class tfdiffLearner:
                     device) if isinstance(x, torch.Tensor) else x)
                 loss = self.train_iter(features)
                 print(loss)    #
+                #sum_loss = sum_loss + loss
                 if torch.isnan(loss).any():
                     raise RuntimeError(
                         f'Detected NaN loss at iteration {self.iter}.')
@@ -120,6 +123,7 @@ class tfdiffLearner:
                 # self.prof.step()
                 self.iter += 1
             self.lr_scheduler.step()
+            #print("average loss:" + sum_loss / len(self.dataset))
 
     def train_iter(self, features):
         self.optimizer.zero_grad()
@@ -128,8 +132,10 @@ class tfdiffLearner:
         B = data.shape[0]
         # random diffusion step, [B]
         t = torch.randint(0, self.diffusion.max_step, [B], dtype=torch.int64)
+        # degrade_data = self.diffusion.degrade_fn(
+        #     data, t, self.task_id)  # degrade data, x_t, [B, N, S*A, 2]
         degrade_data = self.diffusion.degrade_fn(
-            data, t, self.task_id)  # degrade data, x_t, [B, N, S*A, 2]
+            data, t)  # degrade data, x_t, [B, N, S*A, 2]
         predicted = self.model(degrade_data, t, cond)
         if self.task_id == 3:
             data = data.reshape(-1, 512, 1, 2)
