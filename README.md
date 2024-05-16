@@ -6,6 +6,8 @@
 
 ##### 1.测试代码可行性
 
+数据解析https://github.com/zzh606/wifi-csi
+
 该扩散模型所应用的数据集是处理后的Widar3.0数据集，分为feature和condition两部分。其中feature指特征矩阵，是一个t\*90的复数双精度矩阵，t表示时间长度，90由30\*3组成，3是天线数量，30是每根天线每个时间点发送的包数。condition表示标签，分别表示“房间-手势-躯干位置-面部朝向-接收器ID-userID”（1\*6\*5\*5\*20\*6）。
 
 <img src="image/image-20240120124212107.png" style="zoom:33%;" />
@@ -291,3 +293,318 @@ def save(out_dir, data, cond, batch, index=0, file_name='xxx'):
 #### 4月1日
 
 尝试使用https://github.com/yongsen/SignFi
+
+#### 4月2日
+
+将512\*90\*6变成512\*180
+```
+path = 'D:\RFDiffusion\RF-Diffusion-main\dataset\wifi\old2';
+new_path = 'D:\RFDiffusion\RF-Diffusion-main\dataset\wifi\merge';
+
+files = dir(path);
+
+files_per_group = 6;
+
+for i = 3:files_per_group:numel(files)
+    old_file_name = files(i).name;
+    new_file_name = regexprep(old_file_name, '-r\d+', '');
+    new_file_path = fullfile(new_path, new_file_name);
+    
+    data = zeros(512,180);
+    start_col = 1;
+
+    for j = i:min(i + files_per_group - 1, numel(files))
+        file_name = files(j).name;
+        file_path = fullfile(path, file_name);
+
+        current_file = load(file_path);
+        if j == i
+            cond = current_file.cond; 
+        end
+
+        end_col = start_col + 29;
+        matrix =  squeeze(current_file.pred);
+        data(:,start_col:end_col) = matrix(1:512,1:30);
+        start_col = end_col + 1;
+    end
+    
+    save(new_file_path, 'data','cond');
+end
+```
+修改参数，input_dim=180，extra_dim=180,signal_diffusion=False,batch_size=4
+
+#### 4月3日
+
+训练大约20h，训练了50轮，loss约为1e-2数量级。
+
+再次修改BVP合成代码，512\*90\*6 改512\*180
+
+首先是原先的-rx变成合集的第x个30列
+
+```
+function [cfr_array, timestamp] = csi_get_all(filename)
+
+csi_trace = 512;
+timestamp = zeros(length(csi_trace), 1);
+% cfr_array = zeros(length(csi_trace), 90);
+
+pattern = '-r(\d+)';
+num = regexp(filename, pattern, 'match', 'once');
+filename = regexprep(filename, num, '');
+value = str2double(regexprep(num, '-r', ''));
+
+disp(value);
+
+matrix = load(filename);
+data = matrix.data(:,(value-1)*30+1 : value*30);
+
+data = double(data);
+
+cfr_array = squeeze(data);
+```
+数组越界，调试，发现问题所在，尝试改动
+
+```
+% Conj Mult
+conj_mult = csi_data_adj .* conj(csi_data_ref_adj);
+%conj_mult = [conj_mult(:,1:30*(idx - 1)) conj_mult(:,30*idx+1:90)];
+```
+16：49开始合成真实数据BVP750组
+
+#### 4月4日
+
+<img src="image/image4_4.png" style="zoom:50%;" />
+
+算是看到些上升的趋势吧，但是准确率太低了。
+
+#### 4月5日
+
+写神经网络如下，不使用原代码中BVP，只使用r1的512*90矩阵
+```
+import os
+import random
+import numpy as np
+from scipy.io import loadmat
+import tensorflow as tf
+from keras import layers
+import re
+
+data_folder = 'dataset/wifi/old2'
+new_data_folder = 'dataset/wifi/output'
+index = 1
+class_labels = ['action1', 'action2', 'action3', 'action4', 'action5', 'action6']
+
+data = []
+labels = []
+
+for file_name in os.listdir(data_folder):
+    file_path = os.path.join(data_folder, file_name)
+    if file_path.endswith('.mat'):
+        gesture = int(file_name.split('-')[1])
+        location = int(file_name.split('-')[2])
+        orientation = int(file_name.split('-')[3])
+        repetition = int(file_name.split('-')[4])
+        # print(file_name)
+        receiver = int(file_name.split('r')[2].split('.')[0])
+        # print(receiver)
+
+        if receiver != 1:  # 只接受r1
+            continue
+
+        mat_data = loadmat(file_path)
+
+        data.append(mat_data['pred'].reshape(512, 90))
+        labels.append(gesture-1)
+
+for file_name in os.listdir(new_data_folder):
+    file_path = os.path.join(new_data_folder, file_name)
+    if file_path.endswith('.mat'):
+        gesture = int(file_name.split('-')[1])
+        location = int(file_name.split('-')[2])
+        orientation = int(file_name.split('-')[3])
+        repetition = int(file_name.split('-')[4])
+        # print(file_name)
+        receiver = int(file_name.split('r')[2].split('.')[0])
+        # print(receiver)
+
+        if receiver != 1 or repetition > index:  # 只接受r1
+            continue
+
+        mat_data = loadmat(file_path)
+
+        data.append(mat_data['pred'].reshape(512, 90))
+        labels.append(gesture-1)
+
+data = np.array(data)
+labels = np.array(labels)
+
+print(data.shape)
+
+data_size = len(data)
+indices = np.arange(data_size)
+np.random.shuffle(indices)
+data = data[indices]
+labels = labels[indices]
+
+train_ratio = 0.8  # 训练集比例
+train_size = int(data_size * train_ratio)
+
+train_data = data[:train_size]
+train_labels = labels[:train_size]
+test_data = data[train_size:]
+test_labels = labels[train_size:]
+
+train_data = np.expand_dims(train_data, axis=-1)
+test_data = np.expand_dims(test_data, axis=-1)
+
+
+num_classes = len(class_labels)
+train_labels = tf.keras.utils.to_categorical(train_labels, num_classes)
+test_labels = tf.keras.utils.to_categorical(test_labels, num_classes)
+
+input_shape = train_data.shape[1:]
+model = tf.keras.Sequential()
+model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Conv2D(64, kernel_size=(3, 3), activation='relu'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Flatten())
+model.add(layers.Dense(128, activation='relu'))
+model.add(layers.Dense(num_classes, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+batch_size = 32
+epochs = 10
+model.fit(train_data, train_labels, batch_size=batch_size, epochs=epochs, validation_split=0.1)
+
+test_loss, test_accuracy = model.evaluate(test_data, test_labels)
+print('Test Loss:', test_loss)
+print('Test Accuracy:', test_accuracy)
+```
+<img src="image/Line_4_5.png" style="zoom:50%;" />
+
+准确率从30%左右提高到40%以上
+
+
+#### 4月7日
+
+<img src="image/Line_4_7.png" style="zoom:50%;" />
+
+继续增加合成数据直到1：1，到达一定水平后不再增加
+
+#### 4月10日
+
+对数据进行一些预处理，将complex64拆分成float数组传入模型
+
+
+#### 4月24日
+
+进行fmcw数据处理
+
+```
+def LoadSinglefile(fileName, numAdcSamples, numRX, numTx):
+    '''
+    Input:
+        fileName: 原始bin文件
+        numAdcSamples: ADC采样的数量
+        numRX: 接收天线的数量
+        numTX: 发射天线的数量
+    Output:
+        LVDS: 12, numframe * numChirp * numAdcSample 12根虚拟天线 , frame的数量,Chirp的数量,Adc样本的数量
+    '''
+    adc_data = np.fromfile(fileName, dtype=np.int16)
+    # print(adc_data.shape)
+    filesize = len(adc_data)
+    adc_data = adc_data.reshape(-1, 4)
+    LVDS = np.zeros(shape=[filesize // 4, 2], dtype=np.complex64)
+    LVDS[:, 0] = adc_data[:, 0] + 1.j * adc_data[:, 2]
+    LVDS[:, 1] = adc_data[:, 1] + 1.j * adc_data[:, 3]
+    LVDS = LVDS.reshape(-1)
+    numChirps = filesize // (2 * numAdcSamples * numRX)
+    # Chirp(一共收发了这些个Chirps), numTx*numSamples*numRx
+    LVDS = LVDS[:np.prod(numChirps // numTx * numAdcSamples * numRX * numTx)].reshape(numChirps // numTx, numAdcSamples * numRX * numTx)
+    # print(LVDS.shape)
+    # 每个Chirp中分别包含了12个虚拟收发天线之间的数据 Chirps,12根虚拟天线接收的ADCSamples
+    LVDS = LVDS.reshape(-1, numTx * numRX, numAdcSamples).swapaxes(1, 0)
+    LVDS = LVDS.reshape(numTx * numRX, -1)
+    return LVDS
+
+
+def processSinglefile(fileName, numAdcSamples, numRX, numTx, Nfft1, Nfft2, numChirp, numFrame):
+    adcDataList = []
+
+    framecount = 0
+    for ii in range(0, 1, 1):
+        fileNamecur = fileName + "_Raw_" + str(ii) + ".bin"
+        print("Cur FileName: ", fileNamecur)
+        adcData = LoadSinglefile(fileNamecur, numAdcSamples, numRX, numTx)
+        for frameIdx in range(numFrame):
+            # print("cur FrameIdx: ",frameIdx)
+            # 逐帧处理 Nfft2是一帧的Chirp数量,Nfft1是AdcSample的数量
+            # NRx*NTx, Chirp*Nsample
+            adcDataIn = adcData[:, frameIdx * Nfft2 * Nfft1:(frameIdx + 1) * Nfft2 * Nfft1]
+            adcDataIn = adcDataIn.reshape(numRX * numTx, Nfft2, Nfft1)  # numRx*numTx,Nfft2, NumSample
+            adcDataout = np.fft.fft2(adcDataIn)  # numRx*numTx, Nfft2, Nfft1
+            adcDataoutshift = np.fft.fftshift(adcDataout, axes=1)
+
+            # print(adcDataoutshift.shape)
+            file_name = folderProcessed + "/People" + str(peopleProcessing) + "_" + str(framecount) + ".mat"
+
+            sio.savemat(file_name, {"label": peopleProcessing, "data": adcDataoutshift})
+
+            adcDataList.append(adcDataoutshift)
+            framecount += 1
+
+```
+只使用Empty的数据集，最终处理后的数据集（3\*4）\*128\*256\*（600\*22），3是发送天线数量，4是接收天线数量，128是每一帧的chirp数量，256是每一帧的采样率，共22个人，每一个人600帧数据。
+
+
+
+#### 4月25日
+
+数据处理，选择256\*128进行训练，参数调整，sample_rate=256，input_dim=128，cond_dim=1
+
+#### 4月26日
+
+数据量比较大，用时18h，训练4epoch，损失率1e-2
+
+<img src="image/ssim_cdf.png" style="zoom:50%;" />
+平均ssim为0.8182，CDF曲线如上图。
+
+
+#### 4月27日
+
+参考https://blog.csdn.net/Pin_BOY/article/details/116407502  ，尝试使用requirement.txt导入docker
+
+
+#### 4月29日
+
+ValueError: num_samples should be a positive integer value, but got num_samples=0
+
+解决方法 https://blog.csdn.net/qq_38681990/article/details/119606840  ，windows和linux的pytorch的dataLoader些许差别。
+
+RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx
+
+解决方法https://www.cnblogs.com/chester-cs/p/14444247.html ，添加参数--gpus all
+
+FileExistsError: [Errno 17] File exists: 'weights-3300.pt' -> './project/model/fmcw/b32-256-100s/weights.pt'
+
+```
+if os.name == 'nt':
+    torch.save(self.state_dict(), link_name)
+else:
+    if os.path.islink(link_name):
+        os.unlink(link_name)
+    os.symlink(save_basename, link_name)
+```
+报错代码如上，可以看到针对windows和linux采用了不同的代码
+
+删除build cache能提高镜像build速度， docker builder prune
+
+创建镜像，docker build --no-cache -t wbfmcw .
+
+运行镜像，docker run --rm --gpus all wbfmcw
+
+
+
